@@ -176,7 +176,6 @@ update_item(WI_SCAN *wi, WI_MENU *m, DHCPCD_WI_SCAN *scan, DHCPCDUIPlugin *dhcp)
     if (m->associated) set_icon (dhcp->panel, sel, "dialog-ok-apply", 16);
     gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM(m->menu), sel);
     gtk_label_set_text (GTK_LABEL(m->ssid), scan->ssid);
-
     //m->icon = gtk_image_new ();
     //if (scan->flags & WSF_SECURE) set_icon (dhcp->panel, m->icon, "network-wireless-encrypted", 16);
 
@@ -221,7 +220,7 @@ create_menu(WI_SCAN *wis, DHCPCD_WI_SCAN *scan, GtkWidget *p)
     gtk_box_pack_start(GTK_BOX(box), wim->ssid, TRUE, TRUE, 0);
 
     wim->freq = gtk_image_new ();
-    set_icon (dhcp->panel, wim->freq, scan->flags & WSF_5G ? "5g" : "", msize);
+    set_icon (dhcp->panel, wim->freq, scan->frequency > 5000 ? "5g" : "", msize);
     gtk_box_pack_start(GTK_BOX(box), wim->freq, FALSE, FALSE, 0);
 
     wim->icon = gtk_image_new ();

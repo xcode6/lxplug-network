@@ -225,7 +225,7 @@ dhcpcd_wi_associated(DHCPCD_IF *i, DHCPCD_WI_SCAN *scan)
 	assert(i);
 	assert(scan);
 
-	return (i->up && i->ssid && strcmp(i->ssid, scan->ssid) == 0);
+	return (i->up && i->ssid && strcmp(i->ssid, scan->ssid) == 0 && i->freq / 1000 == scan->frequency / 1000);
 }
 
 void
@@ -447,6 +447,9 @@ dhcpcd_wi_scan_compare(DHCPCD_WI_SCAN *a, DHCPCD_WI_SCAN *b)
 	if (cmp == 0)
 		cmp = strcmp(a->ssid, b->ssid);
 
+    if (cmp == 0)
+        cmp = (a->frequency / 1000) - (b->frequency / 1000);
+
 	/* If still the same, return strongest first */
 	if (cmp == 0)
 		cmp = b->strength.value - a->strength.value;
@@ -595,7 +598,7 @@ dhcpcd_wi_scans(DHCPCD_IF *i)
 			continue;
 		}
 		/* Strip duplicated SSIDs, only show the strongest */
-		if (p && strcmp(p->ssid, w->ssid) == 0) {
+		if (p && strcmp(p->ssid, w->ssid) == 0 && (p->frequency / 1000 == w->frequency / 1000)) {
 			/* Set frequency flag from the duplicate */
 			p->flags |= dhcpcd_wi_freqflags(w);
 			p->next = n;
@@ -1126,6 +1129,7 @@ dhcpcd_wpa_if_event(DHCPCD_IF *i)
 			if (wpa && wpa->listen_fd == -1)
 				dhcpcd_wpa_open(wpa);
 		}
+        if (!i->freq && wpa->command_fd > 0) i->freq = dhcpcd_wpa_freq (wpa);
 	}
 }
 
