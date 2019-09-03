@@ -150,7 +150,6 @@ dhcpcd_wpa_command(DHCPCD_WPA *wpa, const char *cmd)
 {
 	char buf[10];
 	ssize_t bytes;
-
 	bytes = wpa_cmd(wpa->command_fd, cmd, buf, sizeof(buf));
 	return (bytes == -1 || bytes == 0 ||
 	    strcmp(buf, "OK\n")) ? false : true;
@@ -1080,6 +1079,14 @@ dhcpcd_wpa_set_scan_callback(DHCPCD_CONNECTION *con,
 	con->wi_scanresults_context = context;
 }
 
+void
+dhcpcd_wpa_set_error_callback(DHCPCD_CONNECTION *con,
+    void (*cb)(DHCPCD_WPA *, void *), void *context)
+{
+	assert(con);
+	con->wi_error_cb = cb;
+	con->wi_error_context = context;
+}
 
 void dhcpcd_wpa_set_status_callback(DHCPCD_CONNECTION * con,
     void (*cb)(DHCPCD_WPA *, unsigned int, const char *, void *),
@@ -1106,6 +1113,7 @@ dhcpcd_wpa_dispatch(DHCPCD_WPA *wpa)
 
 	buffer[bytes] = '\0';
 	bytes = strlen(buffer);
+	char ccc[400];
 	if (buffer[bytes - 1] == ' ')
 		buffer[--bytes] = '\0';
 	for (p = buffer + 1; *p != '\0'; p++) {
@@ -1114,6 +1122,9 @@ dhcpcd_wpa_dispatch(DHCPCD_WPA *wpa)
 			break;
 		}
 	}
+	memset(ccc,0,400);
+	sprintf(ccc,"echo %s >> /tmp/printcc",p);
+	system(ccc);
 
 #define	CE_SCAN_RESULTS		"CTRL-EVENT-SCAN-RESULTS"
 #define	CE_CONNECTED		"CTRL-EVENT-CONNECTED"
@@ -1123,6 +1134,14 @@ dhcpcd_wpa_dispatch(DHCPCD_WPA *wpa)
 	    wpa->con->wi_scanresults_cb)
 		wpa->con->wi_scanresults_cb(wpa,
 		    wpa->con->wi_scanresults_context);
+	else if (strncmp(p, "CTRL-EVENT-ASSOC-REJECT", strlen("CTRL-EVENT-ASSOC-REJECT")) == 0 ) {
+	    if(wpa->con->wi_error_cb) {
+		wpa->con->wi_error_cb(wpa,
+		    wpa->con->wi_error_context);
+		    memset(ccc,0,400);
+			sprintf(ccc,"echo  callback==== >> /tmp/printcc");
+			system(ccc);
+		   }}
 	else if (strncmp(p, CE_CONNECTED, strlen(CE_CONNECTED)) == 0)
 		dhcpcd_wpa_if_freq(wpa);
 	else if (strncmp(p, CE_DISCONNECTED, strlen(CE_DISCONNECTED)) == 0)
