@@ -695,7 +695,7 @@ static void
 dhcpcd_wpa_error_cb(DHCPCD_WPA *wpa, gpointer p)
 {
     DHCPCDUIPlugin * dhcp = (DHCPCDUIPlugin *) p;
-    wpa_show_err(_("Error enabling network"),_("Error WiFi PSK"),dhcp);
+    wpa_show_err(_("Error Connecting"),_("There was an error connecting to the wifi network. Check your selected network and key and try again."),dhcp);
 }
 
 static void
