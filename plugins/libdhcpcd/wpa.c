@@ -858,10 +858,7 @@ dhcpcd_wpa_network_find_new(DHCPCD_WPA *wpa, const char *ssid)
 	ssize_t dl, i;
 	char *dp;
 
-	id = dhcpcd_wpa_network_find(wpa, ssid);
-	if (id != -1)
-		return id;
-
+	
 	dl = dhcpcd_decode_string_escape(dssid, sizeof(dssid), ssid);
 	if (dl == -1)
 		return -1;
@@ -890,11 +887,19 @@ dhcpcd_wpa_network_find_new(DHCPCD_WPA *wpa, const char *ssid)
 	}
 	*ep = '\0';
 
+	strncpy(wpa->userconnect_ssid,essid,strlen(essid));
+	wpa->userconnect_ssid[strlen(essid)] = 0;
+
+	id = dhcpcd_wpa_network_find(wpa, ssid);
+		if (id != -1)
+			return id;
+
 	id = dhcpcd_wpa_network_new(wpa);
 	if (id != -1)
 		dhcpcd_wpa_network_set(wpa, id, "ssid", essid);
 	return id;
 }
+
 
 void
 dhcpcd_wpa_close(DHCPCD_WPA *wpa)
@@ -1134,14 +1139,18 @@ dhcpcd_wpa_dispatch(DHCPCD_WPA *wpa)
 	    wpa->con->wi_scanresults_cb)
 		wpa->con->wi_scanresults_cb(wpa,
 		    wpa->con->wi_scanresults_context);
+	else if (strncmp(p, "Trying to associate with SSID ", strlen("Trying to associate with SSID ")) == 0) {
+		strcpy(wpa->connect_ssid,p+strlen("Trying to associate with SSID "));
+	}
 	else if (strncmp(p, "CTRL-EVENT-ASSOC-REJECT", strlen("CTRL-EVENT-ASSOC-REJECT")) == 0 ) {
-	    if(wpa->con->wi_error_cb) {
-		wpa->con->wi_error_cb(wpa,
-		    wpa->con->wi_error_context);
-		    memset(ccc,0,400);
-			sprintf(ccc,"echo  callback==== >> /tmp/printcc");
-			system(ccc);
-		   }}
+		if (((strlen(wpa->userconnect_ssid)) !=0) && (strncmp(wpa->userconnect_ssid,wpa->connect_ssid,strlen(wpa->userconnect_ssid)) == 0)) {
+	      if(wpa->con->wi_error_cb) {
+		    wpa->con->wi_error_cb(wpa,
+		      wpa->con->wi_error_context);
+		  }
+		}
+        memset(wpa->userconnect_ssid,0,IF_SSIDSIZE);
+	   }
 	else if (strncmp(p, CE_CONNECTED, strlen(CE_CONNECTED)) == 0)
 		dhcpcd_wpa_if_freq(wpa);
 	else if (strncmp(p, CE_DISCONNECTED, strlen(CE_DISCONNECTED)) == 0)
