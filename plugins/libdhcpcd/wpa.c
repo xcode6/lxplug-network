@@ -1143,7 +1143,7 @@ dhcpcd_wpa_dispatch(DHCPCD_WPA *wpa)
 		strcpy(wpa->connect_ssid,p+strlen("Trying to associate with SSID "));
 	}
 	else if (strncmp(p, "CTRL-EVENT-ASSOC-REJECT", strlen("CTRL-EVENT-ASSOC-REJECT")) == 0 ) {
-		if (((strlen(wpa->userconnect_ssid)) !=0) && (strncmp(wpa->userconnect_ssid,wpa->connect_ssid,strlen(wpa->userconnect_ssid)) == 0)) {
+		if (((strlen(wpa->userconnect_ssid)) !=0) && (strncmp(wpa->userconnect_ssid+1,wpa->connect_ssid+1,strlen(wpa->userconnect_ssid)-2) == 0)) {
 	      if(wpa->con->wi_error_cb) {
 		    wpa->con->wi_error_cb(wpa,
 		      wpa->con->wi_error_context);
