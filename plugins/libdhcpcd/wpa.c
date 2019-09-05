@@ -887,8 +887,7 @@ dhcpcd_wpa_network_find_new(DHCPCD_WPA *wpa, const char *ssid)
 	}
 	*ep = '\0';
 
-	strncpy(wpa->userconnect_ssid,essid,strlen(essid));
-	wpa->userconnect_ssid[strlen(essid)] = 0;
+	strcpy(wpa->userconnect_ssid,essid);
 
 	id = dhcpcd_wpa_network_find(wpa, ssid);
 		if (id != -1)
