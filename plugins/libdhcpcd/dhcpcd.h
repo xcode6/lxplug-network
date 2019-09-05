@@ -124,8 +124,6 @@ typedef struct dhcpcd_wi_avs {
 typedef struct dhcpcd_wi_scan {
 	struct dhcpcd_wi_scan *next;
 	char bssid[IF_BSSIDSIZE];
-	char userconnect_ssid[IF_SSIDSIZE];
-	char connect_ssid[IF_SSIDSIZE];
 	unsigned int flags;
 #define WSF_SECURE		0x001
 #define WSF_PSK			0x002
@@ -199,6 +197,8 @@ typedef struct dhcpcd_wi_hist {
 typedef struct dhcpcd_wpa {
 	struct dhcpcd_wpa *next;
 	char ifname[IF_NAMESIZE];
+	char userconnect_ssid[IF_SSIDSIZE];
+	char connect_ssid[IF_SSIDSIZE];
 	unsigned int status;
 	int command_fd;
 	char *command_path;
