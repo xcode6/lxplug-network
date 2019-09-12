@@ -1134,7 +1134,44 @@ dhcpcd_wpa_dispatch(DHCPCD_WPA *wpa)
 		wpa->con->wi_scanresults_cb(wpa,
 		    wpa->con->wi_scanresults_context);
 	else if (strncmp(p, "Trying to associate with SSID ", strlen("Trying to associate with SSID ")) == 0) {
-		strcpy(wpa->connect_ssid, p+strlen("Trying to associate with SSID "));
+		char * ps = p + strlen("Trying to associate with SSID ");
+		char * pd = wpa->connect_ssid;
+		unsigned char c,b;
+		bool need_transform = false;
+
+		if(strstr(ps, "\\x")){
+			char connect_ssid_b[IF_SSIDSIZE];
+			int leng;
+
+			b = *ps;
+			*pd++ = *ps++;
+
+			strcpy(connect_ssid_b, wpa->userconnect_ssid);
+			wpa->userconnect_ssid[0] = b;
+			strcpy(wpa->userconnect_ssid + 1, connect_ssid_b);
+			leng = strlen(wpa->userconnect_ssid);
+			wpa->userconnect_ssid[leng] = b;
+			wpa->userconnect_ssid[leng + 1] = 0;
+
+			for(; *ps != '\0'; ) {
+				if(*ps == '\\') {
+					if (*(ps+1) == 'x') {
+						ps += 2;
+						*pd++ = *ps++;
+						*pd++ = *ps++;
+						continue;
+					}
+				}
+				c = (unsigned char)*ps;
+				*pd++ = hexchrs[(c & 0xf0) >> 4];
+				*pd++ = hexchrs[(c & 0x0f)];
+				ps++;
+			}
+			*(pd-2) = b;
+			*(pd-1) = 0;
+		}else {
+			strcpy(wpa->connect_ssid,p+strlen("Trying to associate with SSID "));
+		}
 	}
 	else if (strncmp(p, "CTRL-EVENT-ASSOC-REJECT", strlen("CTRL-EVENT-ASSOC-REJECT")) == 0 ) {
 		if (((strlen(wpa->userconnect_ssid)) != 0) && (strncmp(wpa->userconnect_ssid + 1, wpa->connect_ssid + 1, strlen(wpa->userconnect_ssid) - 2) == 0)) {
